@@ -17,8 +17,10 @@ COMPILER_INCLUDE_PATH := \
 
 LINKER_OPTIONS := \
 -L ./$(app_Dir_Libs) \
--l $(app_NameStrip_LibGraphics)
-
+-l$(app_NameStrip_LibGraphics) \
+-framework Cocoa -framework IOKit -framework OpenGL \
+-L /usr/lib/ \
+-lbz2.1.0 -lz.1
 
 rm_logLevel := 5	#Set logging level
 include ../CommonRoutines

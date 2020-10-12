@@ -13,7 +13,8 @@ CPP_FLAGS ?= -Wall -std=c++11
 
 COMPILER_INCLUDE_PATH ?= \
 -I ./vendor/spdlog/include/ \
--I ./vendor/glm \
+-I ./vendor/glm/ \
+-I ./vendor/GLFW/include/ \
 -I ./src/ \
 
 #calculate the object file dependecies
@@ -65,7 +66,6 @@ $(addprefix $(lib_Dir_Source), $(lib_Out_Include_CopyFiles))
 	done
 
 	@touch $(lib_Dir_Out)$(lib_Dir_Out_Include).rm_update
-	@echo "rishi done"
 
 #Add directories to create here
 makeDirLib: $(lib_Dir_Out).rm_update
@@ -75,23 +75,44 @@ $(lib_Dir_Out).rm_update:
 	$(call log, 4, "Creating lib directories...")
 	$(call rm_CreateFolder, $(lib_Dir_Out))
 	$(call rm_CreateFolder, $(lib_Dir_Obj))
-#create folder for the include
+#create folder for the include inside bin
 	$(call rm_CreateFolder, $(lib_Dir_Out)$(lib_Dir_Out_Include))
 
-#Craetes nested sub folders inside bin-int and inside bin/Include/RPGraphics
+#Creates nested sub folders inside bin-int and inside bin/Include/RPGraphics
 	@for dir in $(lib_Objects_subDir) $(lib_Out_Include_CopyFiles_subDir); \
 	do \
 	[ -d $$dir ] || mkdir -p $$dir; \
 	done
-	touch $(lib_Dir_Out).rm_update;
+	
+#extract the glfw and the other static library
+	$(call rm_CreateFolder, $(lib_Dir_Obj)GLFW)
+	@rm_curDir=$$(pwd); \
+	cd $(lib_Dir_Obj)GLFW; \
+	ar x $${rm_curDir}/vendor/GLFW/lib/libglfw3.a;
 
-#Add linker objs here
+	$(call rm_CreateFolder, $(lib_Dir_Obj)FreeType)
+	@rm_curDir=$$(pwd); \
+	cd $(lib_Dir_Obj)FreeType; \
+	ar x $${rm_curDir}/vendor/FreeType/lib/libfreetype.a;
+
+	$(call rm_CreateFolder, $(lib_Dir_Obj)GLEW)
+	@rm_curDir=$$(pwd); \
+	cd $(lib_Dir_Obj)GLEW; \
+	ar x $${rm_curDir}/vendor/GLEW/lib/libGLEW.a;
+	
+	@touch $(lib_Dir_Out).rm_update;
+
+#Craete the static library...
 $(lib_Dir_Out)$(lib_Name_Out): $(lib_Objects)
-	@[ -f $(lib_Dir_Out)$(lib_Name_Out) ] && rm $(lib_Dir_Out)$(lib_Name_Out) || true;
+	$(call rmDeleteFile, $(lib_Dir_Out)$(lib_Name_Out))
 	$(call log, 4, "Building library of: $^")
-	@ar rvs $(lib_Dir_Out)$(lib_Name_Out) $^ || (echo "Failed to create static library $<" && false);
+	
+	@ar rs $(lib_Dir_Out)$(lib_Name_Out) $^ \
+	$(lib_Dir_Obj)GLFW/*.o $(lib_Dir_Obj)FreeType/*.o \
+	$(lib_Dir_Obj)GLEW/*.o \
+	|| (echo "Failed to create static library $<" && false);
 
-#Add obj files here
+
 #lib_CompileFileCpp (objRelativePathName, cppRelPathName, headerfileDependecies)
 define lib_CompileFileCpp
 lib_res_objName = $(patsubst %.cpp, %.o, $(strip $(1)))

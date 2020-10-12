@@ -1,4 +1,4 @@
-.PHONY: build clean run buildLib
+.PHONY: build clean run buildLib cleanLib cleanApp
 .DEFAULT_GOAL := build
 
 LibraryMakefilePath := LibGraphics/
@@ -24,9 +24,12 @@ buildLib:
 	$(call log, 3, "Building Library...")
 	@make -C "$(LibraryMakefilePath)" buildLib
 
-clean:  
-	@make -C "$(LibraryMakefilePath)" cleanLib 
+clean: cleanLib	cleanApp
+cleanLib: 
+	@make -C "$(LibraryMakefilePath)" cleanLib
+cleanApp:
 	@make -C "$(AppMakefilePath)" cleanApp
+
 
 run: build
 	@make -C "$(AppMakefilePath)" runApp

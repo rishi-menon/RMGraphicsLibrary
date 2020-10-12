@@ -1,7 +1,7 @@
 
 app_Dir_Libs := lib/
 
-app_Name_LibGraphics := libGraphicsRM.a
+app_Name_LibGraphics := libRMGraphics.a
 app_NameStrip_LibGraphics := $(patsubst lib%.a, %, $(app_Name_LibGraphics))
 
 app_Dir_Source := src/

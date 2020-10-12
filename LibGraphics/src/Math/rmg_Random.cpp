@@ -67,4 +67,15 @@ namespace Random
         return (num > max) ? max : num;
     }
 }
+
+//////////////////////////////////////////////////////
+////                Color                         ////
+//////////////////////////////////////////////////////
+Color Color::white (255, 255, 255, 255);
+Color Color::black (0, 0, 0, 255);
+Color Color::red (230, 26, 26, 255);
+Color Color::green (43, 198, 23, 255);
+Color Color::blue (16, 0, 187, 255);
+Color Color::pink (246, 100, 252, 255);
+Color Color::purple (124, 68, 255, 255);    
 }

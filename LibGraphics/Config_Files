@@ -4,16 +4,22 @@ RMGraphics.h \
 Log/rmg_Log.h \
 Math/rmg_Math.h \
 Math/rmg_Vector.h \
-Math/rmg_Random.h
+Math/rmg_Random.h \
+Application/rmg_Application.h \
+Time/rmg_Time.h
 
 #File to compile and link... enter path relative to lib_Dir_Source or the source directory
 lib_Sources := \
 RMGraphics.cpp \
 Log/rmg_Log.cpp \
-Math/rmg_Random.cpp
+Math/rmg_Random.cpp \
+Application/rmg_Application.cpp \
+Time/rmg_Time.cpp
 
 #Add header file dependencies of the file here
 RMGraphics.cpp_hdep := RMGraphics.h Log/rmg_Log_int.h
 Log/rmg_log.cpp_hdep := Log/rmg_Log_int.h
-Math/rmg_Random.cpp := Math/rmg_Random.h Math/rmg_Random.h
+Math/rmg_Random.cpp_hdep := Math/rmg_Random.h Math/rmg_Random.h
+Application/rmg_Application.cpp_hdep := Application/rmg_Application.h
+Time/rmg_Time.cpp_hdep := Time/rmg_Time.h
 
