@@ -1,0 +1,10 @@
+
+app_Dir_Libs := lib/
+
+app_Name_LibGraphics := libGraphicsRM.a
+app_NameStrip_LibGraphics := $(patsubst lib%.a, %, $(app_Name_LibGraphics))
+
+app_Dir_Source := src/
+app_Dir_Obj := bin-int/
+app_Dir_Out := bin/
+app_Name_Out := main

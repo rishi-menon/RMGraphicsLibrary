@@ -1,0 +1,9 @@
+lib_Dir_Source := src/
+lib_Dir_Obj := bin-int/
+
+#If you change lib_Dir_Out then remember to change it in the main makefile as well
+lib_Dir_Out := bin/
+lib_Name_Out := libGraphicsRM.a
+
+lib_Dir_Out_Include := Include/RMGraphics/
+

@@ -1,0 +1,33 @@
+
+define rm_CreateFolder
+	@[ -d $(1) ] || mkdir -p $(1);
+endef
+
+rm_logLevel ?= 4
+# Lower numbers are a higher priority.. Everything equal or below rm_LogLevel will get printed
+# Set to 0 to disable logging
+# 1: Critical
+# 2: Error
+# 3: Warn
+# 4: Info
+# 5: Trace
+
+#log (message_level, message)
+define log
+	@[ ! $(rm_logLevel) -lt $(1)  ] && echo $(2) || true;
+endef
+
+#logcon (message_level, condition_print_when_true, message)
+define logcon
+	@$(2) && [ ! $(rm_logLevel) -lt $(1)  ] && echo $(3) || true;
+endef
+
+#rmCopy (message_level, orginal_file, new lcoation)
+define rmCopy
+	$(call log, $1, "Copying: $2 to $3")
+	@cp -r $2 $3;
+endef
+
+define rmDeleteFile
+	@[ ! -f $(1) ] || rm $(1);
+endef
