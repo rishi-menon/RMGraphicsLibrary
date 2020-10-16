@@ -1,11 +1,16 @@
-
-//This header file is multipurpose... This is the main header file which will be imported by the client in the end. But this header file is also used internally for building the library
+#pragma once
 #include "Log/rmg_Log.h"
 #include "Math/rmg_Math.h"
 #include "Application/rmg_Application.h"
 #include "Time/rmg_Time.h"
+#include "Input/rmg_Input.h"
+#include "rmg_Constants.h"
+#include "Renderer/rmg_Renderer.h"
 
-namespace RMGraphics {
+
+namespace rmg {
     bool Initialise();
     void Cleanup();
+
+    void Sleep (uint32_t nMilliseconds);
 }

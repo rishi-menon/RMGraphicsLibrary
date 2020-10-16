@@ -3,7 +3,7 @@
 #include <random>
 #include <chrono>
 
-namespace RMGraphics {
+namespace rmg {
 //////////////////////////////////////////////////////
 ////                  Math                        ////
 //////////////////////////////////////////////////////
@@ -77,5 +77,15 @@ Color Color::red (230, 26, 26, 255);
 Color Color::green (43, 198, 23, 255);
 Color Color::blue (16, 0, 187, 255);
 Color Color::pink (246, 100, 252, 255);
-Color Color::purple (124, 68, 255, 255);    
+Color Color::purple (124, 68, 255, 255);  
+
+rmg::vec4 Color::ToPercent () const
+{
+    rmg::vec4 color;
+    color.r = (float)r / 255.0f;
+    color.g = (float)g / 255.0f;
+    color.b = (float)b / 255.0f;
+    color.a = (float)a / 255.0f;
+    return color;
+}
 }

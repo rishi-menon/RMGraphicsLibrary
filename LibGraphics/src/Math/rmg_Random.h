@@ -1,7 +1,8 @@
 #pragma once
 #include "stdint.h"
+#include "Math/rmg_Vector.h"
 
-namespace RMGraphics {
+namespace rmg {
 namespace Math
 {
     float Lerp (float x, float y, float t);
@@ -27,6 +28,9 @@ public:
     Color(const Color&)=default;
     Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255): r(r), g(g), b(b), a(a) {}
 
+    rmg::vec4 ToPercent () const;
+
+public:
     uint8_t r,g,b,a;
 };
 }

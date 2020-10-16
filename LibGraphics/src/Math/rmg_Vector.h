@@ -4,7 +4,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtx/compatibility.hpp>
 
-namespace RMGraphics {
+namespace rmg {
 
 #if 0
 class Vector2;
@@ -69,5 +69,10 @@ typedef glm::vec4 vec4;
 typedef glm::ivec2 ivec2;
 typedef glm::ivec3 ivec3;
 typedef glm::ivec4 ivec4;
+
+typedef glm::mat2 mat2;
+typedef glm::mat3 mat3;
+typedef glm::mat4 mat4;
+ 
 #endif
 }

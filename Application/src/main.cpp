@@ -1,40 +1,47 @@
-#include <spdlog/spdlog.h>
 #include <RMGraphics/RMGraphics.h>
-#include <chrono>
-#include <thread>
-int main()
+
+int main(int argc, const char* argv[])
 {
-    if (!RMGraphics::Initialise())
+    if (!rmg::Initialise())
     {
         RMG_LOG_ERROR ("Failed to initialise RMGraphics...");
         return 0;
     }
-    RMGraphics::Log::SetInternalLogLevel (RMGraphics::LogLevel::trace);
-    RMGraphics::Log::SetLogLevel (RMGraphics::LogLevel::trace);
-    RMG_LOG_TRACE ("Initialised at {0}", RMGraphics::Time::GetTime());
+    rmg::Log::SetInternalLogLevel (rmg::LogLevel::trace);
+    rmg::Log::SetLogLevel (rmg::LogLevel::trace);
 
-    RMGraphics::ivec2 size (1600, 1200);
-    RMGraphics::Application* myApp = new RMGraphics::Application();
+    rmg::ivec2 size (1600, 1200);
+    rmg::Application* myApp = new rmg::Application();
     if (!myApp->Initialise(size))
     {
-        return false;
+        return 0;
     }
-
-    std::chrono::milliseconds chronoRegularSleep(2);
 
     while (myApp->IsRunning())
     {
         myApp->ClearScreen();
-        RMG_LOG_TRACE ("Time: {0}", RMGraphics::Time::GetTime());
+        rmg::Keycode key = rmg::Keycode::A;
+        if (rmg::Input::GetKey(key))
+        {
+            RMG_LOG_INFO ("Key A");
+        }
+        if (rmg::Input::GetKeyDown(key))
+        {
+            RMG_LOG_WARN ("Key A was just pressed");
+        }
+        if (rmg::Input::GetKeyUp(key))
+        {
+            RMG_LOG_WARN ("Key A was just released");
+        }
 
         myApp->UpdateScreen();
-        std::this_thread::sleep_for (chronoRegularSleep);
+        rmg::Sleep(2);
     }
 
     myApp->Cleanup();
     delete myApp;
 
     RMG_LOG_TRACE ("Terminating...");
-    RMGraphics::Cleanup();
+    rmg::Cleanup();
     return 0;
 }

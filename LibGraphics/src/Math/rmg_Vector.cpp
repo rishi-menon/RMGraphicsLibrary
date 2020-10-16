@@ -1,6 +1,7 @@
 #include "rmg_Vector.h"
 
-namespace RMGraphics {
+//THIS FILE IS NOT BEING COMPILED
+namespace rmg {
 
 ////////////////////////////////////////////////////
 //                   Vector2                      //

@@ -30,7 +30,6 @@ cleanLib:
 cleanApp:
 	@make -C "$(AppMakefilePath)" cleanApp
 
-
 run: build
 	@make -C "$(AppMakefilePath)" runApp
 

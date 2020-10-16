@@ -1,5 +1,5 @@
 #pragma once
-namespace RMGraphics {
+namespace rmg {
 namespace Random
 {
     void Init();

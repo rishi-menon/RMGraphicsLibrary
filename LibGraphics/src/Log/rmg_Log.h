@@ -4,7 +4,7 @@
 #include <spdlog/fmt/ostr.h>
 #include <cassert>
 
-namespace RMGraphics {
+namespace rmg {
 enum class LogLevel : char 
 {
     trace = 0,
@@ -19,16 +19,16 @@ namespace Log {
     extern std::shared_ptr<spdlog::logger> g_ClientLogger;
     void SetPattern (const char* const strPattern="%^%v%$");
 
-    void SetLogLevel (::RMGraphics::LogLevel level);
-    void SetInternalLogLevel(::RMGraphics::LogLevel level);
+    void SetLogLevel (::rmg::LogLevel level);
+    void SetInternalLogLevel(::rmg::LogLevel level);
 }
 }
 
-#define RMG_LOG_TRACE(...)            ::RMGraphics::Log::g_ClientLogger->trace (__VA_ARGS__)
-#define RMG_LOG_INFO(...)             ::RMGraphics::Log::g_ClientLogger->info (__VA_ARGS__)
-#define RMG_LOG_WARN(...)             ::RMGraphics::Log::g_ClientLogger->warn (__VA_ARGS__)
-#define RMG_LOG_ERROR(...)            ::RMGraphics::Log::g_ClientLogger->error (__VA_ARGS__)
-#define RMG_LOG_FATAL(...)            ::RMGraphics::Log::g_ClientLogger->critical (__VA_ARGS__)
+#define RMG_LOG_TRACE(...)            ::rmg::Log::g_ClientLogger->trace (__VA_ARGS__)
+#define RMG_LOG_INFO(...)             ::rmg::Log::g_ClientLogger->info (__VA_ARGS__)
+#define RMG_LOG_WARN(...)             ::rmg::Log::g_ClientLogger->warn (__VA_ARGS__)
+#define RMG_LOG_ERROR(...)            ::rmg::Log::g_ClientLogger->error (__VA_ARGS__)
+#define RMG_LOG_FATAL(...)            ::rmg::Log::g_ClientLogger->critical (__VA_ARGS__)
 
 #define ASSERT(x, ...)              do { \
                                         if (!(x)) { \

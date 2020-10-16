@@ -9,7 +9,7 @@ include ../CommonRoutines
 
 C_COMPILER ?= gcc
 CPP_COMPILER ?= g++
-CPP_FLAGS ?= -Wall -std=c++11
+CPP_FLAGS ?= -g -Wall -std=c++17
 
 COMPILER_INCLUDE_PATH ?= \
 -I ./vendor/spdlog/include/ \

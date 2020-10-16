@@ -4,7 +4,7 @@ include Config
 
 C_COMPILER ?= gcc
 CPP_COMPILER :=g++
-CPP_FLAGS := -Wall -std=c++11
+CPP_FLAGS := -g -Wall -std=c++17
 
 # -I ""
 # vendor: lib/Include/RMGraphics/vendor/
@@ -51,6 +51,7 @@ appCreateDir:
 
 #Add object dependencies here
 $(app_Dir_Out)$(app_Name_Out): \
+$(app_Dir_Libs)$(app_Name_LibGraphics) \
 $(app_Dir_Obj)main.o \
 $(app_Dir_Obj)temp.o
 

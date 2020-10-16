@@ -6,7 +6,7 @@
         {
             "label": "Build",
             "type": "shell",
-            "command": "make invalidate; make build",
+            "command": "make build",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -17,6 +17,12 @@
             "label": "BuildAndRun",
             "type": "shell",
             "command": "make run",
+            "problemMatcher": [],
+        },
+        {
+            "label": "Invalidate",
+            "type": "shell",
+            "command": "make invalidate",
             "problemMatcher": [],
         },
         {
