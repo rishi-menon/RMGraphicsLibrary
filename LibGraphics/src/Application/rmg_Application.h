@@ -30,7 +30,7 @@ public:
     Application();
     Application(const Application&) = delete;
     Application& operator= (const Application&) = delete;
-    ~Application() = default;
+    ~Application();
 
     //Trivial functions
     bool IsRunning () const;

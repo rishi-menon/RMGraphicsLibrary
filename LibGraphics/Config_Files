@@ -13,6 +13,8 @@ Math/rmg_Math.h \
 Math/rmg_Vector.h \
 Math/rmg_Random.h \
 Renderer/rmg_Renderer.h \
+Texture/rmg_Texture.h \
+Texture/rmg_Font.h \
 Time/rmg_Time.h
 
 
@@ -29,7 +31,10 @@ Log/rmg_Log.cpp \
 Math/rmg_Random.cpp \
 Renderer/rmg_Renderer.cpp \
 Renderer/rmg_RendererVertex.cpp \
-Time/rmg_Time.cpp
+Renderer/rmg_RendererShapes.cpp \
+Texture/rmg_Texture.cpp \
+Texture/rmg_Font.cpp \
+Time/rmg_Time.cpp 
 
 
 #///////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +49,12 @@ Math/rmg_Random_int.h \
 Input/rmg_Input.h \
 Input/rmg_Input_int.h \
 Renderer/rmg_Renderer_int.h \
-Renderer/rmg_Renderer.h
+Renderer/rmg_Renderer.h \
+rmg_Constants.h \
+rmg_Constants_int.h \
+Texture/rmg_Texture_int.h \
+Texture/rmg_Texture.h \
+Renderer/rmg_RendererShapes_int.h
 
 rmg_Constants.cpp_hdep := \
 rmg_Constants_int.h \
@@ -60,7 +70,9 @@ Input/rmg_Input.h \
 Input/rmg_Input_int.h \
 Time/rmg_Time_int.h \
 Renderer/rmg_Renderer_int.h \
-Renderer/rmg_Renderer.h
+Renderer/rmg_Renderer.h \
+Texture/rmg_Texture_int.h \
+Texture/rmg_Texture.h
 
 #//////////      Input
 Input/rmg_Input.cpp_hdep := \
@@ -92,12 +104,39 @@ Renderer/rmg_RendererVertex_int.h \
 Log/rmg_Log_int.h \
 Log/rmg_Log.h \
 Input/rmg_Input.h \
-Input/rmg_Input_int.h 
+Input/rmg_Input_int.h \
+Texture/rmg_Texture.h \
+Texture/rmg_Texture_int.h \
+Texture/rmg_Font.h \
+Renderer/rmg_RendererShapes_int.h
+
+Renderer/rmg_RendererShapes.cpp_hdep := \
+rmg_Constants.h \
+rmg_Constants_int.h \
+Renderer/rmg_RendererShapes_int.h
 
 Renderer/rmg_RendererVertex.cpp_hdep := \
 Renderer/rmg_RendererVertex_int.h \
 Math/rmg_Math.h
 
+
+#//////////      Texture
+Texture/rmg_Font.cpp_hdep := \
+Texture/rmg_Font.h \
+Texture/rmg_Texture.h \
+Texture/rmg_Texture_int.h \
+rmg_Constants.h \
+rmg_Constants_int.h \
+Log/rmg_Log_int.h \
+Log/rmg_Log.h 
+
+Texture/rmg_Texture.cpp_hdep := \
+rmg_Constants.h \
+rmg_Constants_int.h \
+Texture/rmg_Texture.h \
+Texture/rmg_Texture_int.h \
+Log/rmg_Log_int.h \
+Log/rmg_Log.h
 
 #//////////      Time
 Time/rmg_Time.cpp_hdep := \

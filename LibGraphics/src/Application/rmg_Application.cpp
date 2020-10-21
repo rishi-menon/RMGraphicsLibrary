@@ -13,6 +13,9 @@
 
 #include "Renderer/rmg_RendererVertex_int.h"
 
+#include "Texture/rmg_Texture_int.h"
+#include "Texture/rmg_Texture.h"
+
 namespace rmg {
 Application::Application() :
     m_pWindow(nullptr),
@@ -29,6 +32,14 @@ Application::Application() :
     }
 }
 
+Application::~Application()
+{
+    if (m_pWindow)
+    {
+        Cleanup();
+    }
+}
+
 bool Application::IsRunning() const
 {
     return !glfwWindowShouldClose (m_pWindow);
@@ -42,27 +53,46 @@ void Application::ClearScreen ()
     //Set mouse pos
     double x, y;
     glfwGetCursorPos (m_pWindow, &x, &y);
-    Input::SetMousePos ((int)x, (int)y);
+    //The x and y coordinates are obtained from glfw which takes top left of the screen as the origin. In our application the bottom left is the origin so we need to convert the y coordinate
+    y = Input::GetScreenHeight() - y;
+    Input::SetMousePos (x, y);
 }
 void Application::UpdateScreen ()
 {
-#if 0
+    #if 0
     RendererVertex vertex[4];
-    vertex[0].SetPropCol ({-0.5, -0.5, 0}, Color::red);
-    vertex[1].SetPropCol ({0.5, -0.5, 0}, Color::red);
-    vertex[2].SetPropCol ({0.5, 0.5, 0}, Color::blue);
-    vertex[3].SetPropCol ({-0.5, 0.5, 0}, Color::blue);
-#else
-    RendererVertex vertex[4];
-    vertex[0].SetPropCol ({50, 50, 0}, Color::red);
-    vertex[1].SetPropCol ({400, 50, 0}, Color::red);
-    vertex[2].SetPropCol ({400, 400, 0}, Color::blue);
-    vertex[3].SetPropCol ({50, 400, 0}, Color::blue);
-#endif
+    vertex[0].SetPropTex ({10, 10, 0}, Color::white, {0.0f, 0.0f});
+    vertex[1].SetPropTex ({200, 10, 0}, Color::white, {1.0f, 0.0f});
+    vertex[2].SetPropTex ({200, 200, 0}, Color::white, {1.0f, 1.0f});
+    vertex[3].SetPropTex ({10, 200, 0}, Color::white, {0.0f, 1.0f});
+
+    RendererVertex vertex1[4];
+    vertex1[0].SetPropTex ({300, 10, 0}, Color::pink, {0.0f, 0.0f});
+    vertex1[1].SetPropTex ({400, 10, 0}, Color::white, {1.0f, 0.0f});
+    vertex1[2].SetPropTex ({400, 200, 0}, Color::pink, {1.0f, 1.0f});
+    vertex1[3].SetPropTex ({300, 200, 0}, Color::white, {0.0f, 1.0f});
+
+    RendererVertex vertex2[4];
+    vertex2[0].SetPropTex ({50, 500, 0}, Color::white, {0.0f, 0.0f});
+    vertex2[1].SetPropTex ({200, 500, 0}, Color::white, {1.0f, 0.0f});
+    vertex2[2].SetPropTex ({200, 700, 0}, Color::white, {1.0f, 1.0f});
+    vertex2[3].SetPropTex ({50, 700, 0}, Color::white, {0.0f, 1.0f});
+
+    RendererVertex vertex3[4];
+    vertex3[0].SetPropTex ({500, 500, 0}, Color::pink, {0.0f, 0.0f});
+    vertex3[1].SetPropTex ({600, 500, 0}, Color::white, {1.0f, 0.0f});
+    vertex3[2].SetPropTex ({600, 700, 0}, Color::pink, {1.0f, 1.0f});
+    vertex3[3].SetPropTex ({500, 700, 0}, Color::white, {0.0f, 1.0f});
+
+
+    static unsigned int id = Texture::LoadTexture ("bg.png");
     unsigned int index[6] = {0, 1, 2, 2, 3, 0};
 
-    Renderer::DrawGeneric (vertex, 4, index, 6, 0);
-
+    Renderer::DrawGeneric (vertex, RendererShapes::Shapes::Quad, id);
+    Renderer::DrawGenericColor (vertex1, RendererShapes::Shapes::Quad);
+    Renderer::DrawGeneric (vertex2, RendererShapes::Shapes::Quad, id);
+    Renderer::DrawGenericColor (vertex3, RendererShapes::Shapes::Quad);
+#endif
 
     Renderer::Flush();
 
@@ -146,6 +176,9 @@ bool Application::Initialise(const ivec2& size, const char* const strWindowTitle
     Input::SetScreenWidth (size.x);
     Input::SetScreenHeight (size.y);
 
+    rmg_glcall(glEnable (GL_BLEND));
+    rmg_glcall(glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
     //Print OpenGl details
     {
         RMG_LOG_IINFO ("Vendor: {0}", glGetString(GL_VENDOR));
@@ -178,10 +211,10 @@ bool Application::Initialise(const ivec2& size, const char* const strWindowTitle
 
 void Application::Cleanup ()
 {
-    if (m_pWindow)
-	{
-		glfwDestroyWindow(m_pWindow);
-		m_pWindow = nullptr;
-	}
+    if (!m_pWindow) { return; } //Most probably it has already been cleaned
+
+	glfwDestroyWindow(m_pWindow);
+	m_pWindow = nullptr;
+	
 }
 }

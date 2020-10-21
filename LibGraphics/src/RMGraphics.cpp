@@ -7,15 +7,39 @@
 #include "Input/rmg_Input_int.h"
 #include "Renderer/rmg_Renderer_int.h"
 #include "Renderer/rmg_Renderer.h"
+#include "rmg_Constants.h"
+#include "rmg_Constants_int.h"
+#include "Texture/rmg_Texture_int.h"
+#include "Texture/rmg_Texture.h"
+#include "Renderer/rmg_RendererShapes_int.h"
+#include "Texture/rmg_Font.h"
 
 namespace rmg {
-    bool Initialise()
+    bool Initialise(int argc, const char* argv[])
     {
+        if (g_Argc != -1)
+        {
+            RMG_LOG_IERROR ("RMG Error: rmg has already been initialised");
+            return false;
+        }
+        if (argc >= g_nMaxArgc)
+        {
+            RMG_LOG_IERROR ("RMG Error: rmg can only support {0} arguments: {1} arguments given", g_nMaxArgc, argc);
+            return false;
+        }
+        g_Argc = argc;
+        for (int i = 0; i < argc; i++)
+        {
+            g_Argv[i] = argv[i];
+        }
+
         Log::Init();
         Random::Init();
         Input::Init();
+        Texture::Init();
+        Font::OnLibInit();
+        RendererShapes::Init();
         
-        RMG_LOG_IWARN ("Val {0}", Input::GetIndexFromKeyCode(Keycode::C));
         glfwSetErrorCallback([](int error, const char* const desc)
 	    {
 		    IASSERT(false, "RMG GLFW Error {0}: {1}", error, desc);
@@ -32,7 +56,10 @@ namespace rmg {
 
     void Cleanup()
     {
+        Texture::Cleanup();
+        Font::OnLibCleanup();
         Renderer::Cleanup();
+
         glfwTerminate();
     }
 

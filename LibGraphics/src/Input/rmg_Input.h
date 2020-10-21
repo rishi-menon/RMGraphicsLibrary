@@ -12,7 +12,7 @@ namespace Input {
     bool GetKeyUp (Keycode key);
     bool GetKey (Keycode key);
 
-    ivec2 GetMousePos();
+    vec2 GetMousePos();
 
 }
 }

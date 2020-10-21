@@ -13,7 +13,8 @@ namespace Log {
     {
         g_CoreLogger = ::spdlog::stdout_color_mt("Core");
 		g_CoreLogger->set_level(spdlog::level::trace);
-		g_CoreLogger->set_pattern("%^[%T] %n: %v%$");
+		// g_CoreLogger->set_pattern("%^[%T] %n: %v%$");
+		g_CoreLogger->set_pattern("%^[%T] %v%$");
 
         g_ClientLogger = ::spdlog::stdout_color_mt("Client");
 		g_ClientLogger->set_level(spdlog::level::trace);

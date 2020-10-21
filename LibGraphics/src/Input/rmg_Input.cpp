@@ -25,7 +25,7 @@ namespace Input
     static float s_fDeltaTime = 0;
     static float s_fLastTime = 0;
     
-    static rmg::ivec2 s_vMousePos = rmg::ivec2(0,0);
+    static rmg::vec2 s_vMousePos = rmg::vec2(0.0f,0.0f);
 
     struct KeyStateTracker
     {
@@ -46,8 +46,8 @@ namespace Input {
     void SetScreenWidth(uint32_t n) { s_nScreenWidth = n;}
     void SetScreenHeight(uint32_t n) { s_nScreenHeight = n;}
     
-    rmg::ivec2 GetMousePos() { return s_vMousePos; }
-    void SetMousePos(int x, int y) { s_vMousePos.x = x; s_vMousePos.y = y;}
+    rmg::vec2 GetMousePos() { return s_vMousePos; }
+    void SetMousePos(float x, float y) { s_vMousePos.x = x; s_vMousePos.y = y; }
 
     ////////////////////////////////////////////////////////
     /////            Callback functions                 ////
@@ -86,6 +86,8 @@ namespace Input {
     {
         Application* pApp = (Application*)glfwGetWindowUserPointer (pWindow);
         IASSERT (pApp, "RMG Error: Window user data was not set in callback function");
+
+        ypos = s_nScreenHeight - ypos;
         if (pApp && pApp->m_MousePosFunc)
         {
             pApp->m_MousePosFunc(pApp, xpos, ypos);

@@ -2,12 +2,12 @@
 
 int main(int argc, const char* argv[])
 {
-    if (!rmg::Initialise())
+    if (!rmg::Initialise(argc, argv))
     {
         RMG_LOG_ERROR ("Failed to initialise RMGraphics...");
         return 0;
     }
-    rmg::Log::SetInternalLogLevel (rmg::LogLevel::trace);
+    rmg::Log::SetInternalLogLevel (rmg::LogLevel::warn);
     rmg::Log::SetLogLevel (rmg::LogLevel::trace);
 
     rmg::ivec2 size (1600, 1200);
@@ -16,24 +16,21 @@ int main(int argc, const char* argv[])
     {
         return 0;
     }
+    //rmg::Renderer::SetDefaultFont ("../")
+    unsigned int id = rmg::Texture::LoadTexture ("Assets/Images/bg.png");
+    rmg::Font* pFont = rmg::Font::LoadFont ("Assets/Fonts/Quicksand/Quicksand Regular 400.ttf", 250);
 
     while (myApp->IsRunning())
     {
         myApp->ClearScreen();
-        rmg::Keycode key = rmg::Keycode::A;
-        if (rmg::Input::GetKey(key))
-        {
-            RMG_LOG_INFO ("Key A");
-        }
-        if (rmg::Input::GetKeyDown(key))
-        {
-            RMG_LOG_WARN ("Key A was just pressed");
-        }
-        if (rmg::Input::GetKeyUp(key))
-        {
-            RMG_LOG_WARN ("Key A was just released");
-        }
 
+        //Now you can finally start drawing
+    
+        rmg::Renderer::DrawQuadCol_BottomLeft ({0, 0, 0}, {2000, 100}, rmg::Color::red);
+        rmg::Renderer::DrawText_Left ("Hi there", {0, 100, 0}, 100.0f, rmg::Color::green, pFont);
+
+        // rmg::Renderer::DrawQuadCol_BottomLeft ({0, 200, 0}, {2000, 100}, rmg::Color::red);
+        // rmg::Renderer::DrawText_Left ("klmnopqrstuvwxyz", {0, 200, 0}, 100.0f, rmg::Color::white, pFont);
         myApp->UpdateScreen();
         rmg::Sleep(2);
     }

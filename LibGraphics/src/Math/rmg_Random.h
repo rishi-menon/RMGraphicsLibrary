@@ -22,7 +22,7 @@ namespace Random
 class Color
 {
 public:
-    static Color white, black, red, green, blue, pink, purple;    
+    static Color white, black, red, green, blue, pink, purple, yellow, orange, DarkGrey;    
 public:
     Color()=default;
     Color(const Color&)=default;

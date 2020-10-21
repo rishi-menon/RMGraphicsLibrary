@@ -37,3 +37,4 @@ run: build
 .PHONY: invalidate
 invalidate:
 	@make -C "$(LibraryMakefilePath)" invalidate
+	@make -C "$(AppMakefilePath)" invalidate

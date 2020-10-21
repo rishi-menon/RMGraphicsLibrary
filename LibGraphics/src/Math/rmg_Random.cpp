@@ -78,6 +78,9 @@ Color Color::green (43, 198, 23, 255);
 Color Color::blue (16, 0, 187, 255);
 Color Color::pink (246, 100, 252, 255);
 Color Color::purple (124, 68, 255, 255);  
+Color Color::yellow (240, 240, 20, 255);
+Color Color::orange (240, 133, 20, 255); 
+Color Color::DarkGrey (40, 40, 40, 255); 
 
 rmg::vec4 Color::ToPercent () const
 {

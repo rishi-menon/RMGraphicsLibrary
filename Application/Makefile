@@ -1,5 +1,5 @@
 
-.PHONY: buildApp cleanApp runApp
+.PHONY: buildApp cleanApp runApp appPostBuild invalidate
 include Config
 
 C_COMPILER ?= gcc
@@ -25,7 +25,7 @@ LINKER_OPTIONS := \
 rm_logLevel := 5	#Set logging level
 include ../CommonRoutines
 
-buildApp: | appCreateDir $(app_Dir_Out)$(app_Name_Out)
+buildApp: | appCreateDir $(app_Dir_Out)$(app_Name_Out) appPostBuild
 
 cleanApp:
 	$(call log, 4, "Cleaning $(app_Dir_Libs)")
@@ -39,6 +39,15 @@ runApp:
 	$(call log, 3, "")
 	@./$(app_Dir_Out)$(app_Name_Out)
 
+invalidate:
+	@[ -f $(app_Dir_Out).rm_update ] && rm $(app_Dir_Out).rm_update || true;
+
+
+appPostBuild: $(app_Dir_Out).rm_update
+$(app_Dir_Out).rm_update:
+	@echo "Copying Assets..."
+	@cp -r Assets $(app_Dir_Out)
+	@touch $(app_Dir_Out).rm_update
 
 appCreateDir:
 #create the library folder

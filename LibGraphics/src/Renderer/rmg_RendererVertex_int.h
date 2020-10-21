@@ -1,13 +1,13 @@
+#pragma once
 #include "Math/rmg_Math.h"
+
 namespace rmg {
-//Declarations copied from rmg_Renderer_int.h
 namespace Renderer {
     bool Init();
-    void Cleanup();
 }
-
 class RendererVertex
 {
+    friend bool Renderer::Init();
 public:
     RendererVertex() = default;
     RendererVertex(const RendererVertex&) = default;
@@ -23,9 +23,6 @@ public:
 
     void SetTexId (float id) { m_fTexId = id; }
     float GetTexId () { return m_fTexId; }
-
-friend bool Renderer::Init();
-friend void Renderer::Cleanup();
 
 public:
     rmg::vec3 m_vPos;

@@ -7,7 +7,7 @@ namespace rmg {
 namespace Input {
     void SetScreenWidth(uint32_t n);
     void SetScreenHeight(uint32_t n);
-    void SetMousePos(int x, int y);
+    void SetMousePos(float x, float y);
     
     //Callback functions
     extern void WindowResizeCallback(GLFWwindow* pWindow, int nWidth, int nHeight);

@@ -15,6 +15,8 @@ COMPILER_INCLUDE_PATH ?= \
 -I ./vendor/spdlog/include/ \
 -I ./vendor/glm/ \
 -I ./vendor/GLFW/include/ \
+-I ./vendor/stb_image/ \
+-I ./vendor/FreeType/ \
 -I ./src/ \
 
 #calculate the object file dependecies
@@ -65,7 +67,7 @@ $(addprefix $(lib_Dir_Source), $(lib_Out_Include_CopyFiles))
 	echo "Copying: $${rm_src}$${file} to $${rm_include}$$(dirname $${file})"; \
 	done
 
-	@touch $(lib_Dir_Out)$(lib_Dir_Out_Include).rm_update
+	@touch $(lib_Dir_Out)$(lib_Dir_Out_Include).rm_update 
 
 #Add directories to create here
 makeDirLib: $(lib_Dir_Out).rm_update

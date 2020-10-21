@@ -3,4 +3,7 @@
 
 namespace rmg {
     Application* g_pCurrentApp = nullptr;
+
+    int g_Argc = -1;
+    const char* g_Argv[g_nMaxArgc];
 }

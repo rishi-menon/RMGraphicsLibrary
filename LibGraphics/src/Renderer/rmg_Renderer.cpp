@@ -11,6 +11,12 @@
 #include "Input/rmg_Input.h"
 #include "Input/rmg_Input_int.h"
 
+#include "Texture/rmg_Texture.h"
+#include "Texture/rmg_Texture_int.h"
+
+#include "Renderer/rmg_RendererShapes_int.h"
+#include "Texture/rmg_Font.h"
+
 static unsigned int CompileShader(unsigned int nShaderType, const char* strShaderCode)
 {
     unsigned int nId = glCreateShader (nShaderType);
@@ -59,7 +65,7 @@ void main() {
 }
 )";
 
-static const char* s_strShaderFragment = R"(
+static const char* s_strShaderFragmentBase = R"(
 #version 330 core
 
 layout(location = 0) out vec4 col;
@@ -67,21 +73,21 @@ layout(location = 0) out vec4 col;
 in vec4 v_col;
 in vec2 v_texCoord;
 in float v_texId;
-uniform sampler2D u_textureSlots[16];
+uniform sampler2D u_textureSlots[%d];
 
 void main()
 {
     int texId = int(v_texId);
-    //col = v_col * texture(u_textureSlots[texId], v_texCoord);
-    col = v_col;
+    col = v_col * texture(u_textureSlots[texId], v_texCoord);
 }
 )";
 
 
 //Constants
+//To do: Increase this number
 static const unsigned int s_nMaxVertex = 12; 
 static const unsigned int s_nMaxIndex = 18;
-static const uint8_t s_nMaxTextureSlots = 16;
+static uint8_t s_nMaxTextureSlots = 16;
 
 //Props
 static unsigned int s_nVao;
@@ -98,6 +104,10 @@ static rmg::RendererVertex* s_vertexArray = nullptr;
 static unsigned int* s_indexArray = nullptr;
 static unsigned int* s_boundTexSlots = nullptr;
 
+static unsigned int s_nWhiteTextureId;
+
+static rmg::Font* s_pDefaultFont = nullptr;
+
 namespace rmg {
 namespace Renderer {
 
@@ -108,6 +118,14 @@ namespace Renderer {
             RMG_LOG_IWARN ("RMG Warning: Renderer has already been initialised");
             return false;
         }
+        //Set total texture slots
+        {
+            int nTotalTexSlots;
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nTotalTexSlots);
+            s_nMaxTextureSlots = nTotalTexSlots;
+        }
+
+        //Start Createing buffers
         rmg_glcall(glGenVertexArrays (1, &s_nVao));
         rmg_glcall(glBindVertexArray (s_nVao));
 
@@ -134,11 +152,29 @@ namespace Renderer {
         rmg_glcall(glVertexAttribPointer (3, 1, GL_FLOAT, GL_FALSE, sizeof (RendererVertex), (const void*)offsetof(RendererVertex, m_fTexId)));
 
         //Shader
+        //First create the fragment shader from the template
+        char* strFragmentShader;
+        {
+            //+10 just to have some extra
+            std::size_t fragLen = strlen (s_strShaderFragmentBase) + 10;    
+            strFragmentShader = new(std::nothrow) char[fragLen];
+            if (!strFragmentShader)
+            {
+                IASSERT (false, "RMG Error: Could not allocate enough heap memory for fragment shader");
+                return false;
+            }
+            std::snprintf (strFragmentShader, fragLen, s_strShaderFragmentBase, s_nMaxTextureSlots);
+        }
+
         s_nShader = glCreateProgram ();
         unsigned int nVertex = CompileShader(GL_VERTEX_SHADER, s_strShaderVertex);
-        unsigned int nFragment = CompileShader(GL_FRAGMENT_SHADER, s_strShaderFragment);
+        unsigned int nFragment = CompileShader(GL_FRAGMENT_SHADER, strFragmentShader);
+        
         if (nVertex == (unsigned int)(-1) || nFragment == (unsigned int)(-1)) 
         {   
+            //cleanup
+            delete[] strFragmentShader;
+            strFragmentShader = nullptr;
             return false;
         }
         rmg_glcall(glAttachShader (s_nShader, nVertex));
@@ -155,16 +191,25 @@ namespace Renderer {
             RMG_LOG_IERROR ("RMG Error: Could not link the shader: {0}", buff);
             delete[] buff;
             IASSERT (false, "");
+
+            //cleanup
+            delete[] strFragmentShader;
+            strFragmentShader = nullptr;
             return false;
         }
         rmg_glcall(glUseProgram (s_nShader));
+
+        //cleanup
+        delete[] strFragmentShader;
+        strFragmentShader = nullptr;
+        
 
         //Set uniforms
         int nTexId = glGetUniformLocation (s_nShader, "u_textureSlots");
         if (nTexId == -1)
         {
             RMG_LOG_IWARN ("RMG Warning: Uniform u_textureSlots was not found");
-            // return false;
+            return false;
         }
         else
         {
@@ -186,6 +231,10 @@ namespace Renderer {
             return false;
         }
 
+        //Load a white texture
+        unsigned char whiteRgba[4] = {255, 255, 255, 255};
+        s_nWhiteTextureId = Texture::LoadTextureBuffer (whiteRgba, 1, 1);
+
         s_vertexArray = new(std::nothrow) RendererVertex[s_nMaxVertex];
         s_indexArray = new(std::nothrow) unsigned int[s_nMaxIndex];
         s_boundTexSlots = new(std::nothrow) unsigned int[s_nMaxTextureSlots];
@@ -196,11 +245,19 @@ namespace Renderer {
             return false;
         }
 
-        for (unsigned int i = 0; i < s_nMaxTextureSlots; i++)
+        for (unsigned int i = 1; i < s_nMaxTextureSlots; i++)
         {
             s_boundTexSlots[i] = (unsigned int)(-1);    //Reset to an invalid state
         }
+        s_boundTexSlots[0] = s_nWhiteTextureId; //0 is reserved for white texture
+
         return true;
+    }
+
+    bool SetDefaultFont (const char* strFontPath, int nSizeY)
+    {
+        s_pDefaultFont = Font::LoadFont (strFontPath, nSizeY);
+        return (s_pDefaultFont != nullptr);
     }
 
     void Flush ()
@@ -209,6 +266,10 @@ namespace Renderer {
         {
             return;
         }
+
+        //Bind the white texture just in case Texture::LoadTexture caused it to unbind
+        rmg_glcall(glActiveTexture (GL_TEXTURE0));
+        rmg_glcall(glBindTexture (GL_TEXTURE_2D, s_nWhiteTextureId));
 
         rmg_glcall(glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(RendererVertex) * s_nCurVertexCount, s_vertexArray));
 
@@ -219,8 +280,30 @@ namespace Renderer {
         s_nCurIndexCount = 0;
         s_nCurVertexCount = 0;
         s_nCurTexIndex = 1; //0 is reserved for white 
-        std::memset (s_boundTexSlots, -1, s_nMaxTextureSlots);  //reset the tex slots
-        //To do: set 0 to white tex slot here
+        
+        //reset the tex slots
+        for (uint8_t i = 0; i < s_nMaxTextureSlots; s_boundTexSlots[i] = (unsigned int)(-1), i++);
+        
+        s_boundTexSlots[0] = s_nWhiteTextureId;
+    }
+
+    unsigned int GetWhiteTexId () { return s_nWhiteTextureId; }
+
+    void DrawGeneric (const RendererVertex* vertexBuffer, RendererShapes::Shapes shape, unsigned int nTexId)
+    {
+        DrawGeneric(vertexBuffer, RendererShapes::GetVertexCount(shape),
+        RendererShapes::GetIndexBuffer(shape), RendererShapes::GetIndexCount(shape), nTexId);
+    }
+    void DrawGenericColor(const RendererVertex* vertexBuffer, RendererShapes::Shapes shape)
+    {
+        DrawGeneric(vertexBuffer, RendererShapes::GetVertexCount(shape),
+        RendererShapes::GetIndexBuffer(shape), RendererShapes::GetIndexCount(shape), s_nWhiteTextureId);
+    }
+
+
+    void DrawGenericColor (const RendererVertex* vertexBuffer, unsigned int nVertexCount, unsigned int* indexBuffer, unsigned int nIndexCount)
+    {
+        DrawGeneric (vertexBuffer, nVertexCount, indexBuffer, nIndexCount, s_nWhiteTextureId);
     }
 
     void DrawGeneric (const RendererVertex* vertexBuffer, unsigned int nVertexCount, unsigned int* indexBuffer, unsigned int nIndexCount, unsigned int nTexId)
@@ -253,8 +336,8 @@ namespace Renderer {
                 Renderer::Flush();
             }
 
-            // rmg_glcall(glActiveTexture (GL_TEXTURE0 + s_nCurTexIndex));
-            // rmg_glcall(glBindTexture (GL_TEXTURE_2D, nTexId));
+            rmg_glcall(glActiveTexture (GL_TEXTURE0 + s_nCurTexIndex));
+            rmg_glcall(glBindTexture (GL_TEXTURE_2D, nTexId));
             s_boundTexSlots[s_nCurTexIndex] = nTexId;
             nTextureSlot = s_nCurTexIndex;
             ++s_nCurTexIndex;
@@ -263,8 +346,6 @@ namespace Renderer {
         //We have covered the safety checks where we dont have enough room in the current batch
 
         RendererVertex* vertexOffset = s_vertexArray + s_nCurVertexCount;
-        // std::memcpy (vertexOffset, vertexBuffer, nVertexCount); //Perform a shallow copy
-
         for (unsigned int i = 0; i < nVertexCount; i++)
         {
             vertexOffset[i] = vertexBuffer[i];
@@ -279,6 +360,56 @@ namespace Renderer {
 
         s_nCurIndexCount += nIndexCount;
         s_nCurVertexCount += nVertexCount;
+    }
+
+
+    //To do: Add a styles parameter for left, middle and right align and also for text wrap vsc clip and also for line spacing
+    //To do: Add ability to print multi line strings once you add the 
+    void DrawText_Left (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, Font* pFont)
+    {
+        if (!pFont) 
+        {
+            if (s_pDefaultFont)
+            {
+                 pFont = s_pDefaultFont; //Use default font instead
+            }
+            else
+            {
+                RMG_LOG_IWARN ("RMG Warning: Font and Default Font were both not provided. Please specify either of them. Cannot print text: {0}", strText);
+                return;
+            }
+        }
+
+        pFont->ReserveChars (strText);
+
+        //Start printing 
+        const float multiplier = 1.41f; 
+        //GetSize returns the pixel height that was set while loading the font so when you divide pixelSize by that value you get the scaling factor... For some reason this pixel height is a bit smaller than the actual pixel height, and hence the multiplier
+        float scale = multiplier * pixelSize / pFont->GetSize();    
+
+        //Offset it a bit to the left so that the first character will be printed exactly at the x coordinate specified in posistion instead of a few pixels away
+        float posX = posOriginal.x - pFont->GetFontChar(strText[0]).Bearing.x * scale;
+        float posY = posOriginal.y;
+
+        rmg::vec3 posQuad = posOriginal;    //posRect is different than the x position because each font character has a bearing X and bearing Y
+        for (std::size_t i = 0; strText[i] != '\0'; i++)
+        {
+            const FontChar& fc = pFont->GetFontChar(strText[i]);
+
+            posQuad.x = posX + fc.Bearing.x * scale;
+            posQuad.y = posY - (fc.Size.y - fc.Bearing.y) * scale;
+            float width = fc.Size.x * scale;
+            float height = fc.Size.y * scale;
+
+            RendererVertex v[4];
+            v[0].SetPropTex (posQuad, color, rmg::vec2 (0.0f, 0.0f));
+            v[1].SetPropTex (rmg::vec3(posQuad.x + width, posQuad.y, posQuad.z), color, rmg::vec2 (1.0f, 0.0f));
+            v[2].SetPropTex (rmg::vec3(posQuad.x + width, posQuad.y + height, posQuad.z), color, rmg::vec2 (1.0f, 1.0f));
+            v[3].SetPropTex (rmg::vec3(posQuad.x, posQuad.y + height, posQuad.z), color, rmg::vec2 (0.0f, 1.0f));
+
+            Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, fc.TexId);
+            posX += fc.Advance * scale;
+        }
     }
 
     void Cleanup()
@@ -315,5 +446,53 @@ namespace Renderer {
         // rmg_glcall(glViewport (-1.0f, -1.0f, 1.0f, 1.0f));
     }
 
+
+//////////////////////////////////////////////////////////////////////
+///////                 Client side API                        ///////
+//////////////////////////////////////////////////////////////////////
+
+    void DrawQuadCol (const rmg::vec3& pos, const rmg::vec2& size, const Color& color)
+    {
+        RendererVertex v[4];
+        rmg::vec2 halfSize = size / 2.0f;
+        vec4 col = color.ToPercent();
+        v[0].SetPropCol (vec3(pos.x - halfSize.x, pos.y - halfSize.y, pos.z), col);
+        v[1].SetPropCol (vec3(pos.x + halfSize.x, pos.y - halfSize.y, pos.z), col);
+        v[2].SetPropCol (vec3(pos.x + halfSize.x, pos.y + halfSize.y, pos.z), col);
+        v[3].SetPropCol (vec3(pos.x - halfSize.x, pos.y + halfSize.y, pos.z), col);
+        Renderer::DrawGenericColor (v, RendererShapes::Shapes::Quad);
+    }
+    void DrawQuadCol_BottomLeft (const rmg::vec3& pos, const rmg::vec2& size, const Color& color)
+    {
+        RendererVertex v[4];
+        vec4 col = color.ToPercent();
+        v[0].SetPropCol (vec3(pos.x         , pos.y         , pos.z), col);
+        v[1].SetPropCol (vec3(pos.x + size.x, pos.y         , pos.z), col);
+        v[2].SetPropCol (vec3(pos.x + size.x, pos.y + size.y, pos.z), col);
+        v[3].SetPropCol (vec3(pos.x         , pos.y + size.y, pos.z), col);
+        Renderer::DrawGenericColor (v, RendererShapes::Shapes::Quad);
+    }
+
+    void DrawQuadTex (const rmg::vec3& pos, const rmg::vec2& size, const Color& color, unsigned int textureId)
+    {
+        RendererVertex v[4];
+        rmg::vec2 halfSize = size / 2.0f;
+        vec4 col = color.ToPercent();
+        v[0].SetPropTex (vec3(pos.x - halfSize.x, pos.y - halfSize.y, pos.z), col, vec2(0.0f, 0.0f));
+        v[1].SetPropTex (vec3(pos.x + halfSize.x, pos.y - halfSize.y, pos.z), col, vec2(1.0f, 0.0f));
+        v[2].SetPropTex (vec3(pos.x + halfSize.x, pos.y + halfSize.y, pos.z), col, vec2(1.0f, 1.0f));
+        v[3].SetPropTex (vec3(pos.x - halfSize.x, pos.y + halfSize.y, pos.z), col, vec2(0.0f, 1.0f));
+        Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, textureId);
+    }
+    void DrawQuadTex_BottomLeft (const rmg::vec3& pos, const rmg::vec2& size, const Color& color, unsigned int textureId)
+    {
+        RendererVertex v[4];
+        vec4 col = color.ToPercent();
+        v[0].SetPropTex (vec3(pos.x         , pos.y         , pos.z), col, vec2(0.0f, 0.0f));
+        v[1].SetPropTex (vec3(pos.x + size.x, pos.y         , pos.z), col, vec2(1.0f, 0.0f));
+        v[2].SetPropTex (vec3(pos.x + size.x, pos.y + size.y, pos.z), col, vec2(1.0f, 1.0f));
+        v[3].SetPropTex (vec3(pos.x         , pos.y + size.y, pos.z), col, vec2(0.0f, 1.0f));
+        Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, textureId);
+    }
 }
 }
