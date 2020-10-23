@@ -15,5 +15,6 @@ namespace Renderer {
     void DrawText (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, const FontStyle& style = FontStyleDefault, Font* pFont = nullptr);
 
     bool SetDefaultFont (const char* strFontPath, int nSizeY);
+    void SetDefaultFont (Font* pFont);
 }
 }

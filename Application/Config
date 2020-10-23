@@ -1,4 +1,3 @@
-
 app_Dir_Libs := lib/
 
 app_Name_LibGraphics := libRMGraphics.a
@@ -8,3 +7,26 @@ app_Dir_Source := src/
 app_Dir_Obj := bin-int/
 app_Dir_Out := bin/
 app_Name_Out := main
+
+#////////////////////////////////////////////////////////////////////////////////
+#///////////                  Compiling Settings
+#////////////////////////////////////////////////////////////////////////////////
+
+#C_COMPILER ?= gcc
+CPP_COMPILER := g++
+CPP_FLAGS := -g -Wall -std=c++17
+
+COMPILER_INCLUDE_PATH := \
+-I ./$(app_Dir_Libs)Include/ \
+-I ./$(app_Dir_Libs)Include/RMGraphics/ \
+-I ./$(app_Dir_Libs)Include/RMGraphics/vendor/spdlog/include/ \
+-I ./$(app_Dir_Libs)Include/RMGraphics/vendor/glm/
+
+COMPILER_OPTIONS :=
+
+LINKER_OPTIONS := \
+-L ./$(app_Dir_Libs) \
+-l$(app_NameStrip_LibGraphics) \
+-framework Cocoa -framework IOKit -framework OpenGL \
+-L /usr/lib/ \
+-lbz2.1.0 -lz.1

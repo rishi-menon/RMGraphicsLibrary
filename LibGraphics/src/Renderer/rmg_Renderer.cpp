@@ -258,6 +258,10 @@ namespace Renderer {
         s_pDefaultFont = Font::LoadFont (strFontPath, nSizeY);
         return (s_pDefaultFont != nullptr);
     }
+    void SetDefaultFont (Font* pFont)
+    {
+        s_pDefaultFont = pFont;
+    }
 
     void Flush ()
     {

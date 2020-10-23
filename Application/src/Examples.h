@@ -1,0 +1,3 @@
+
+void EgOnStart();
+void EgOnUpdate();
