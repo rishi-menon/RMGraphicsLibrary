@@ -32,4 +32,10 @@ void EgOnUpdate()
     //Draw text: Center Aligned
     rmg::Renderer::DrawText ("Lorem ipsum dolor\nsit amet, ullamco laboris consectetur\nadipiscing elit", {rmg::Input::GetScreenWidth()/2.0f, 300, 0}, 40.0f, rmg::Color::yellow, rmg::FontStyle(rmg::FontAlign::Middle, 1.5));
     
+
+    //Check to see if a key was pressed
+    if (rmg::Input::GetKey (rmg::Keycode::Q))
+    {
+        rmg::Renderer::DrawQuadCol_BottomLeft ({0, 600, 0}, {2000, 100}, rmg::Color::white);
+    }
 }

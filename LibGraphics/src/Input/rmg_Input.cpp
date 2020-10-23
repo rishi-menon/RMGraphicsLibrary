@@ -121,7 +121,7 @@ namespace Input {
         std::unordered_map<Keycode, int32_t>::const_iterator it = s_mapKeycodeToIndex.find (key);
         if (it == s_mapKeycodeToIndex.end())
         {
-            IASSERT (false, "A keycode does is not registered in the index map... This is bad");
+            RMG_LOG_IWARN ("RMG Warning: keycode {0} is not registered in the index map...", (int32_t)(key));
             return 0;
         }
         return it->second;
@@ -202,15 +202,17 @@ namespace Input {
         s_mapKeycodeToIndex.emplace (Keycode::Tilde, index++);
         s_mapKeycodeToIndex.emplace (Keycode::Tab, index++);
         s_mapKeycodeToIndex.emplace (Keycode::Capslock, index++);
+        s_mapKeycodeToIndex.emplace (Keycode::Space, index++);
+#if 0
         s_mapKeycodeToIndex.emplace (Keycode::LeftShift, index++);
         s_mapKeycodeToIndex.emplace (Keycode::FunctionKey, index++);
         s_mapKeycodeToIndex.emplace (Keycode::LeftControl, index++);
         s_mapKeycodeToIndex.emplace (Keycode::LeftOption, index++);
         s_mapKeycodeToIndex.emplace (Keycode::LeftCommand, index++);
-        s_mapKeycodeToIndex.emplace (Keycode::Space, index++);
         s_mapKeycodeToIndex.emplace (Keycode::RightCommand, index++);
         s_mapKeycodeToIndex.emplace (Keycode::RightOption, index++);
         s_mapKeycodeToIndex.emplace (Keycode::RightShift, index++);
+#endif
         s_mapKeycodeToIndex.emplace (Keycode::Enter, index++);
         s_mapKeycodeToIndex.emplace (Keycode::Delete, index++);
         s_mapKeycodeToIndex.emplace (Keycode::RightArrow, index++);

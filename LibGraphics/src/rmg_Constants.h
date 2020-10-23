@@ -12,15 +12,18 @@ namespace rmg {
         Tilde = 96,
         Tab = 258,
         Capslock = 280,
+        Space = 32,
+
+#if 0
         LeftShift = 340,
         FunctionKey = -1,
         LeftControl = 341,
         LeftOption = 342,
         LeftCommand = 343,
-        Space = 32,
         RightCommand = 347,
         RightOption = 346,
         RightShift = 344,
+#endif
         Enter = 257,
         Delete = 259,
 
