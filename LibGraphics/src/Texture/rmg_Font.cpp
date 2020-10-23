@@ -10,6 +10,16 @@
 #include FT_FREETYPE_H
 
 namespace rmg {
+     FontStyle FontStyleDefault = FontStyle(FontAlign::Left, 1.2f);
+
+     FontStyle::FontStyle(FontAlign align, float lineSpacing) :
+        Align(align),
+        LineSpacing(lineSpacing)
+     {
+     }
+}
+
+namespace rmg {
     FontChar::FontChar(unsigned int texid, unsigned int advance, const rmg::ivec2& size, const rmg::ivec2 bearing) :
         TexId (texid),
         Advance (advance),
@@ -68,31 +78,40 @@ namespace rmg {
         }
     }
 
-    const FontChar& Font::GetFontChar(int character)
+    const FontChar* Font::GetFontChar(int character)
     {
+        //
+        if (character < (int)(' ') || character == '\n')
+        {
+            return nullptr;
+        }
         std::unordered_map<int, FontChar>::iterator it = m_mapCharacters.find(character);
         if (it != m_mapCharacters.end())
         {
-            return it->second;
+            return &it->second;
         }
         else
         {
             //We need to load the character and then return it
             if (LoadSingleChar (character))
             {
-                
-                return m_mapCharacters.at (character);
+                return &m_mapCharacters.at (character);
             }
             else
             {
-                IASSERT (false, "");
+                IASSERT (false, "RMG Error: Could not get font character: {0}", character);
                 //This is bad... We couldn't create the character that we were requesting
-                return m_mapCharacters.begin()->second; //return an arbitrary character
+                return nullptr;
             }
         }
     }
     bool Font::LoadSingleChar(int character, std::vector<unsigned char>* pBuffer)
     {
+        if (character < (int)(' ') || character == '\n')
+        {
+            return false;
+        }
+
         FT_Face* pFace = (FT_Face*)m_pFontFace;
         if (FT_Load_Char (*pFace, character, FT_LOAD_RENDER))
         {
@@ -102,6 +121,19 @@ namespace rmg {
 
         std::size_t nWidth = (*pFace)->glyph->bitmap.width;
         std::size_t nHeight = (*pFace)->glyph->bitmap.rows;
+
+        if (character == ' ')
+        {
+            //No need to load the texture and prepare the buffer
+            FontChar fontchar;
+            fontchar.TexId = 0;
+            fontchar.Advance = (*pFace)->glyph->advance.x >> 6;    //advance is in 1/64th of a pixel
+            fontchar.Size = rmg::ivec2(nWidth, nHeight);
+            fontchar.Bearing.x = (*pFace)->glyph->bitmap_left;
+            fontchar.Bearing.y = (*pFace)->glyph->bitmap_top;
+            m_mapCharacters.emplace (character, fontchar);
+            return true;
+        }
 
         std::vector<unsigned char> bufferBackup;
         if (!pBuffer)  pBuffer = &bufferBackup;
@@ -136,7 +168,7 @@ namespace rmg {
         fontchar.Bearing.y = (*pFace)->glyph->bitmap_top;
 
         m_mapCharacters.emplace (character, fontchar);
-        RMG_LOG_IINFO (m_mapCharacters.size());
+        return true;
     }
 
 //Static methods

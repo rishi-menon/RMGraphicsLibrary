@@ -9,7 +9,28 @@ namespace rmg {
 bool Initialise(int argc, const char* argv[]);
 void Cleanup();
 
-//Declarations of Renderer
+//Styles
+enum class FontAlign {
+    Left = 0,
+    Middle,
+    Right
+};
+// enum class FontWrap {
+//     Wrap = 0,   //Wrap text to next line if it overshoots
+//     Clip        //Clip text so that it doesnt wrap to next line
+// };
+
+struct FontStyle
+{
+    FontStyle() = default;
+    FontStyle(const FontStyle&) = default;
+    FontStyle(FontAlign align, float lineSpacing);
+
+    FontAlign Align;
+    // FontWrap Wrap;
+    float LineSpacing;  //Multiplier for current pixel sizeY
+};
+extern FontStyle FontStyleDefault;
 
 class FontChar
 {
@@ -39,7 +60,7 @@ private:
 public:
     static Font* LoadFont (const char* strFontPath, float sizeY);
     void ReserveChars (const char* strChar);
-    const FontChar& GetFontChar(int character);
+    const FontChar* GetFontChar(int character);
     float GetSize();
 
 private:

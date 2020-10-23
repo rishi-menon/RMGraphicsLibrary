@@ -12,7 +12,7 @@ namespace Renderer {
     void DrawQuadTex (const rmg::vec3& pos, const rmg::vec2& size, const Color& color, unsigned int textureId);
     void DrawQuadTex_BottomLeft (const rmg::vec3& pos, const rmg::vec2& size, const Color& color, unsigned int textureId);
 
-    void DrawText_Left (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, Font* pFont = nullptr);
+    void DrawText (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, const FontStyle& style = FontStyleDefault, Font* pFont = nullptr);
 
     bool SetDefaultFont (const char* strFontPath, int nSizeY);
 }

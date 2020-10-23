@@ -84,9 +84,8 @@ void main()
 
 
 //Constants
-//To do: Increase this number
-static const unsigned int s_nMaxVertex = 12; 
-static const unsigned int s_nMaxIndex = 18;
+static const unsigned int s_nMaxVertex = 1000; 
+static const unsigned int s_nMaxIndex = 1000*6/4;
 static uint8_t s_nMaxTextureSlots = 16;
 
 //Props
@@ -363,11 +362,205 @@ namespace Renderer {
     }
 
 
-    //To do: Add a styles parameter for left, middle and right align and also for text wrap vsc clip and also for line spacing
-    //To do: Add ability to print multi line strings once you add the 
-    void DrawText_Left (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, Font* pFont)
+    ////////////////////////////////////////////////////////////////////////////////////
+    ///////                    Text rendering functions
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    static void GenerateQuadVertexBuffer (RendererVertex v[4], const rmg::vec3& pos, const rmg::vec2& size, const Color& col)
     {
-        if (!pFont) 
+        
+        v[0].SetPropTex (pos, col, rmg::vec2 (0.0f, 0.0f));
+        v[1].SetPropTex (rmg::vec3(pos.x + size.x, pos.y, pos.z), col, rmg::vec2 (1.0f, 0.0f));
+        v[2].SetPropTex (rmg::vec3(pos.x + size.x, pos.y + size.y, pos.z), col, rmg::vec2 (1.0f, 1.0f));
+        v[3].SetPropTex (rmg::vec3(pos.x, pos.y + size.y, pos.z), col, rmg::vec2 (0.0f, 1.0f));
+    }
+
+    ////////////////////////////////////////
+    /////       Left Align
+    ////////////////////////////////////////
+    static void DrawTextLine_LeftAligned (const char* strText, int strLen, const rmg::vec3& posOriginal, float scale, const Color& color, const FontStyle& style, Font* pFont)
+    {
+        IASSERT (style.Align == FontAlign::Left, "RMG Error: Should be Left Aligned inside internal function");
+
+        rmg::vec3 posQuad = posOriginal;    //posRect is different than the x position because each font character has a bearing X and bearing Y
+
+        std::size_t i = 0;
+        float posX;
+        for (; i < strLen && strText[i] != '\0'; i++)
+        {
+            const FontChar* fc = pFont->GetFontChar(strText[i]);
+            if (fc)  
+            {
+                //Offset it a bit to the left so that the first character will be printed exactly at the x coordinate specified in posistion instead of a few pixels away
+                posX = posOriginal.x - fc->Bearing.x * scale;
+                break;
+            }
+        }
+
+        for (; i < strLen && strText[i] != '\0'; i++)
+        {
+            const FontChar* fc = pFont->GetFontChar(strText[i]);
+            if (!fc)  continue;
+            if (strText[i] != ' ')
+            {
+                posQuad.x = posX + fc->Bearing.x * scale;
+                posQuad.y = posOriginal.y - (fc->Size.y - fc->Bearing.y) * scale;
+                rmg::vec2 size = rmg::vec2(fc->Size.x * scale, fc->Size.y * scale);
+
+                RendererVertex v[4];
+                GenerateQuadVertexBuffer (v, posQuad, size, color);
+
+                Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, fc->TexId);
+            }
+            posX += fc->Advance * scale;    //Update After
+
+        }
+    }
+
+    ////////////////////////////////////////
+    /////       Right Align
+    ////////////////////////////////////////
+
+    static void DrawTextLine_RightAligned (const char* strText, int strLen, const rmg::vec3& posOriginal, float scale, const Color& color, const FontStyle& style, Font* pFont)
+    {
+        IASSERT (style.Align == FontAlign::Right, "RMG Error: Should be Right Aligned inside internal function");
+
+        //Offset it a bit to the left so that the first character will be printed exactly at the x coordinate specified in posistion instead of a few pixels away
+        float posX;
+        int i = strLen - 1;
+        for (; i >= 0; i--) {
+            const FontChar* fc = pFont->GetFontChar(strText[i]);
+            if (fc)
+            {
+                posX = posOriginal.x + (fc->Advance - fc->Bearing.x - fc->Size.x)*scale;
+                break;
+            }
+        }
+
+        rmg::vec3 posQuad = posOriginal;    //posRect is different than the x position because each font character has a bearing X and bearing Y
+        for (int i = strLen-1; i >= 0; i--)
+        {
+            const FontChar* fc = pFont->GetFontChar(strText[i]);
+            if (!fc)  continue;
+
+            posX -= fc->Advance * scale;    //Update Before
+            if (strText[i] != ' ')
+            {
+                posQuad.x = posX + fc->Bearing.x * scale;
+                posQuad.y = posOriginal.y - (fc->Size.y - fc->Bearing.y) * scale;
+                rmg::vec2 size = rmg::vec2(fc->Size.x * scale, fc->Size.y * scale);
+
+                RendererVertex v[4];
+                GenerateQuadVertexBuffer (v, posQuad, size, color);
+
+                Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, fc->TexId);
+            }   
+        }
+    }
+
+    ////////////////////////////////////////
+    /////       Center Align
+    ////////////////////////////////////////
+
+    static void DrawTextLine_CenterAligned (const char* strText, int strLen, const rmg::vec3& posOriginal, float scale, const Color& color, const FontStyle& style, Font* pFont)
+    {
+        IASSERT (style.Align == FontAlign::Middle, "RMG Error: Should be Right Aligned inside internal function");
+
+        FontStyle newStyle = style;
+        int halfLen = strLen / 2;
+        if (strLen % 2 == 0)
+        {
+            const FontChar* fcMiddleLeft = pFont->GetFontChar (strText[halfLen-1]);
+            const FontChar* fcMiddleRight = pFont->GetFontChar (strText[halfLen]);
+
+            rmg::vec3 posLeft = posOriginal;
+            rmg::vec3 posRight = posOriginal;
+
+            if (fcMiddleLeft && fcMiddleRight)
+            {
+                //calculate and add some padding between characters
+                
+                //Relative x position of the right edge of the middle left character. So for "ABCD" this would be the x value of the rightost edge of letter B.
+                const float leftcharPos = fcMiddleLeft->Bearing.x + fcMiddleLeft->Size.x;
+                //Relative x position of the left edge of letter C
+                const float rightcharPos = fcMiddleLeft->Advance + fcMiddleRight->Bearing.x;
+                float fPadding = (rightcharPos - leftcharPos) * scale;
+                fPadding /= 2.0f;
+                posLeft.x -= fPadding;
+                posRight.x += fPadding; 
+            }
+
+            //Left half of the string should be right aligned
+            newStyle.Align = FontAlign::Right;
+            DrawTextLine_RightAligned (strText, halfLen, posLeft, scale, color, newStyle, pFont);
+            //Right half of the string should be left aligned
+            newStyle.Align = FontAlign::Left;
+            DrawTextLine_LeftAligned (strText + halfLen, halfLen, posRight, scale, color, newStyle, pFont);
+        }
+        else
+        {
+            //Odd number of characters... Offset the position a bit so that its truely center aligned
+            const FontChar* fcMiddleLeft = pFont->GetFontChar (strText[halfLen-1]);
+            const FontChar* fcMiddle = pFont->GetFontChar (strText[halfLen]);
+
+            rmg::vec3 posLeft = posOriginal;
+            
+            if (fcMiddle)  posLeft.x -= fcMiddle->Size.x * scale / 2.0f;
+            
+            rmg::vec3 posRight = posLeft;
+            
+            //calculate and add some padding between characters
+            if (fcMiddleLeft && fcMiddle)
+            {
+                //Relative x position of the right edge of the middle left character. So for "ABCDE" this would be the x value of the rightost edge of letter B.
+                const float leftcharPos = fcMiddleLeft->Bearing.x + fcMiddleLeft->Size.x;
+                //Relative x position of the left edge of letter C
+                const float rightcharPos = fcMiddleLeft->Advance + fcMiddle->Bearing.x;
+                float fPadding = (rightcharPos - leftcharPos) * scale;
+                fPadding /= 2.0f;
+                posLeft.x -= fPadding;
+                posRight.x += fPadding; 
+            }
+
+            //The middle character can either be drawn with the left half or the right half... In this implementation it is being drawn with the right half (for no particular reason)
+            //Draw the left half which is right aligned
+            newStyle.Align = FontAlign::Right;
+            DrawTextLine_RightAligned (strText, halfLen, posLeft, scale, color, newStyle, pFont);
+            //Draw the right half which is left aligned (also incldues center character)
+            newStyle.Align = FontAlign::Left;
+            DrawTextLine_LeftAligned (strText+halfLen, halfLen+1, posRight, scale, color, newStyle, pFont);
+        }
+    }
+
+    static inline void DrawTextLine (const char* strText, int strLen, const rmg::vec3& posOriginal, float scale, const Color& color, const FontStyle& style, Font* pFont)
+    {
+        //pFont cannot be null here
+        IASSERT (pFont, "RMG Error: Font was null");
+        if (!strLen) return;
+
+        switch (style.Align)
+        {
+            case FontAlign::Left:
+            {
+                DrawTextLine_LeftAligned (strText, strLen, posOriginal, scale, color, style, pFont);
+                break;
+            }
+            case FontAlign::Right:
+            {
+                DrawTextLine_RightAligned (strText, strLen, posOriginal, scale, color, style, pFont);
+                break;
+            }
+            case FontAlign::Middle:
+            {
+                DrawTextLine_CenterAligned (strText, strLen, posOriginal, scale, color, style, pFont);
+                break;
+            }
+        }
+    }
+
+    void DrawText (const char* strText, const rmg::vec3& posOriginal, float pixelSize, const Color& color, const FontStyle& style, Font* pFont)
+    {
+        if (!pFont)
         {
             if (s_pDefaultFont)
             {
@@ -382,33 +575,30 @@ namespace Renderer {
 
         pFont->ReserveChars (strText);
 
-        //Start printing 
+        
         const float multiplier = 1.41f; 
         //GetSize returns the pixel height that was set while loading the font so when you divide pixelSize by that value you get the scaling factor... For some reason this pixel height is a bit smaller than the actual pixel height, and hence the multiplier
         float scale = multiplier * pixelSize / pFont->GetSize();    
 
-        //Offset it a bit to the left so that the first character will be printed exactly at the x coordinate specified in posistion instead of a few pixels away
-        float posX = posOriginal.x - pFont->GetFontChar(strText[0]).Bearing.x * scale;
-        float posY = posOriginal.y;
+        //Start printing 
+        rmg::vec3 pos = posOriginal;
+        bool bContinue = true;
 
-        rmg::vec3 posQuad = posOriginal;    //posRect is different than the x position because each font character has a bearing X and bearing Y
-        for (std::size_t i = 0; strText[i] != '\0'; i++)
+        for (int start = 0, end = 0; bContinue; end++)
         {
-            const FontChar& fc = pFont->GetFontChar(strText[i]);
+            char c = strText[end];
+            if (c == '\n' || c == '\0')
+            {
+                int len = end - start;  //Length will be excluding the \n character because there is no need to include that to print
+                const char* strTextStart = (strText + start);
+                DrawTextLine (strTextStart, len, pos, scale, color, style, pFont);
 
-            posQuad.x = posX + fc.Bearing.x * scale;
-            posQuad.y = posY - (fc.Size.y - fc.Bearing.y) * scale;
-            float width = fc.Size.x * scale;
-            float height = fc.Size.y * scale;
+                end++;
+                start = end;
+                pos.y -= style.LineSpacing * pixelSize;
+            }
 
-            RendererVertex v[4];
-            v[0].SetPropTex (posQuad, color, rmg::vec2 (0.0f, 0.0f));
-            v[1].SetPropTex (rmg::vec3(posQuad.x + width, posQuad.y, posQuad.z), color, rmg::vec2 (1.0f, 0.0f));
-            v[2].SetPropTex (rmg::vec3(posQuad.x + width, posQuad.y + height, posQuad.z), color, rmg::vec2 (1.0f, 1.0f));
-            v[3].SetPropTex (rmg::vec3(posQuad.x, posQuad.y + height, posQuad.z), color, rmg::vec2 (0.0f, 1.0f));
-
-            Renderer::DrawGeneric (v, RendererShapes::Shapes::Quad, fc.TexId);
-            posX += fc.Advance * scale;
+            bContinue = (c != '\0');
         }
     }
 
