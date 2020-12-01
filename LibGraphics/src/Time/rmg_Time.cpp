@@ -18,7 +18,7 @@ namespace Time {
         s_fDeltaTime = Math::ClampRight (0.1f,  curTime - s_fLastGameTime);
         s_fLastGameTime = curTime;
     }
-    float DeltaTime() { return s_fDeltaTime; }
+    float GetDeltaTime() { return s_fDeltaTime; }
 }
 }
 

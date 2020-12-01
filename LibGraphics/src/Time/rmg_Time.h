@@ -3,6 +3,5 @@ namespace rmg {
 namespace Time {
     double GetTime();
     float GetDeltaTime ();
-    float DeltaTime();
 }
 }

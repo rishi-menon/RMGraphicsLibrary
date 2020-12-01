@@ -1,5 +1,5 @@
 #pragma once
-#include "Log/rmg_log.h"
+#include "Log/rmg_Log.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtx/compatibility.hpp>
