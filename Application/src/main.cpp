@@ -1,4 +1,4 @@
-#include <RMGraphics/RMGraphics.h>
+#include <RMGraphics.h>
 
 #include "Examples.h"
 
@@ -34,10 +34,9 @@ int main(int argc, const char* argv[])
     }
 
     myApp->Cleanup();
+    rmg::Cleanup();
     delete myApp;
 
     RMG_LOG_TRACE ("Terminating...");
-    rmg::Cleanup();
-
     return 0;
 }

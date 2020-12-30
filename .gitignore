@@ -6,6 +6,8 @@ Application/bin/
 Application/bin-int/
 Application/lib/
 
-.ionide/
+bin/
+bin-int/
 
-To Do
+.ionide/
+.vs/
